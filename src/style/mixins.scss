@@ -1,0 +1,41 @@
+@mixin dot($color) {
+  &::after {
+    content: "∙";
+
+    // typographic settings
+    font-weight: 600;
+    color: $color;
+
+    @content;
+  }
+}
+
+@mixin dotColorTransform($startColor: $primary, $endColor: $twitter, $time: 5s) {
+  @include dot($startColor) {
+    animation: dot-color-transform $time;
+    animation-iteration-count: infinite;
+    animation-fill-mode: both;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
+  }
+
+  @keyframes dot-color-transform {
+    from {
+      color: $startColor;
+    }
+    to {
+      color: $endColor;
+    }
+  }
+}
+
+@mixin dotUnder($color) {
+  @include dot($color) {
+    // placement settings
+    position: absolute;
+    left: calc(50% - 5px);
+    top: calc(50%);
+
+    @content;
+  }
+}
