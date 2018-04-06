@@ -4,40 +4,25 @@ import Vue from 'vue';
 import Buefy from 'buefy';
 import 'buefy/lib/buefy.css';
 
-import App from '@/App';
+import App from '@/App.vue';
 import router from '@/router';
+import store from '@/store.js';
+
+if ( process.env.NODE_ENV !== 'production' ) {
+  Vue.config.debug = true;
+}
 
 Vue.config.productionTip = false;
 Vue.use(Buefy, {
   defaultIconPack: 'fas',
+  defaultToastDuration: 5000,
 });
-
-var store = {
-  debug: process.env.NODE_ENV === 'production' ? false : true,
-  state: {
-    endpointClient: null,
-  },
-  setEndpointClient(client) {
-    if (this.debug) {
-      console.log(`[store] setting global endpointClient: ${client.url}`)
-    }
-
-    this.state.endpointClient = client;
-  },
-  getEndpointClient() {
-    return this.state.endpointClient;
-  },
-};
+Vue.use(store);
 
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
   router,
   components: { App },
-  data() {
-    return {
-      store: store,
-    };
-  },
   template: '<App />',
 });

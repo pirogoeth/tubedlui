@@ -13,8 +13,7 @@
       type="url"
       required="true"
       pattern="https?://.+"
-      field="endpointUrl"
-      @select="option => setEndpoint(option)">
+      field="endpointUrl">
       <div slot="empty">
         <font-awesome-icon icon="history" />
         No History Available
@@ -70,7 +69,7 @@ let methods = {
         let client = Client.makeForEndpoint(endpoint);
 
         // And update the global store.
-        this.$root.$data.store.setEndpointClient(client);
+        this.$store.setEndpointClient(client);
       })
       .catch(error => {
         this.$toast.open({
@@ -102,10 +101,10 @@ let methods = {
 
 let computedProps = {
   endpointStateContainerClasses() {
-    return "button is-static endpoint-status";
+    return "button endpoint-status";
   },
   endpointHistory() {
-    return this.getEndpointHistory() || [];
+    return this.getEndpointHistory();
   },
   endpointState() {
     if (this.connected && this.endpoint.current) {
@@ -126,11 +125,19 @@ export default {
   props: {
   },
   data() {
+    let client = this.$store.getEndpointClient();
+    let currentEndpoint = null;
+    let isConnected = false;
+    if ( client ) {
+      currentEndpoint = client.endpointUrl;
+      isConnected = true;
+    }
+
     return {
-      connected: false,
+      connected: isConnected,
       connecting: false,
       endpoint: {
-        current: null,
+        current: currentEndpoint,
         history: this.getEndpointHistory(),
       },
     };

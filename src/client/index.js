@@ -6,8 +6,6 @@ import { Job } from '@/client/jobs';
 import { Profile } from '@/client/profiles';
 
 export class Client {
-  endpointClients = {};
-
   static testEndpoint(endpoint) {
     return axios.get('/health/', {
       baseURL: endpoint,
@@ -15,15 +13,16 @@ export class Client {
   }
 
   static makeForEndpoint(endpoint) {
+    if ( !this.endpointClients ) {
+      this.endpointClients = {};
+    }
+
     if ( includes(this.endpointClients, endpoint) ) {
       return this.endpointClients[endpoint];
     }
 
     let newClient = new Client(endpoint);
-
-    this.endpointClients = {
-      endpoint: newClient,
-    };
+    this.endpointClients[endpoint] = newClient;
 
     return newClient;
   }
@@ -33,6 +32,10 @@ export class Client {
     this.config = {
       baseURL: url,
     };
+  }
+
+  get endpointUrl() {
+    return this.url;
   }
 
   get destinations() {
