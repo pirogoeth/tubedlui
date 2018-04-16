@@ -6,7 +6,7 @@ import 'buefy/lib/buefy.css';
 
 import App from '@/App.vue';
 import router from '@/router';
-import store from '@/store.js';
+import store from '@/store';
 
 if ( process.env.NODE_ENV !== 'production' ) {
   Vue.config.debug = true;
@@ -22,7 +22,7 @@ Vue.use(store);
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
-  router,
+  router: router,
   components: { App },
   template: '<App />',
 });

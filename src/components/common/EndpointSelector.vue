@@ -56,8 +56,8 @@ let methods = {
           type: 'is-success',
         });
 
-        // Add this endpoint to localStorage
-        this.updateEndpointHistory({
+        // Add this endpoint to localStorage via store
+        this.$store.updateEndpointHistory({
           endpointUrl: endpoint,
           starred: false,
         });
@@ -80,31 +80,14 @@ let methods = {
 
     this.connecting = false;
   },
-  getEndpointHistory() {
-    return JSON.parse(localStorage.getItem('endpoints')) || [];
-  },
-  setEndpointHistory(source) {
-    localStorage.setItem('endpoints', source);
-    return source;
-  },
-  updateEndpointHistory(source) {
-    let endpoints = this.getEndpointHistory();
-    let exists = filter(endpoints, (e) => (e.endpointUrl === source.endpointUrl));
-    if (exists.length != 0) {
-      return;
-    }
-
-    endpoints.unshift(source);
-    return this.setEndpointHistory(JSON.stringify(endpoints));
-  },
 }
 
 let computedProps = {
+  endpointHistory() {
+    return this.$store.getEndpointHistory();
+  },
   endpointStateContainerClasses() {
     return "button endpoint-status";
-  },
-  endpointHistory() {
-    return this.getEndpointHistory();
   },
   endpointState() {
     if (this.connected && this.endpoint.current) {
@@ -138,7 +121,7 @@ export default {
       connecting: false,
       endpoint: {
         current: currentEndpoint,
-        history: this.getEndpointHistory(),
+        history: this.$store.getEndpointHistory(),
       },
     };
   },

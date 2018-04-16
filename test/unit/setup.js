@@ -1,3 +1,13 @@
-import Vue from 'vue'
+import Vue from 'vue';
+import Buefy from 'buefy';
 
-Vue.config.productionTip = false
+import store from '@/store';
+
+Vue.config.debug = true;
+Vue.config.productionTip = false;
+
+Vue.use(Buefy, {
+  defaultIconPack: 'fas',
+  defaultToastDuration: 5000,
+});
+Vue.use(store);
