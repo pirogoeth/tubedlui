@@ -1,3 +1,3 @@
-export function calculateNextState(store, updateState) {
-  return Object.assign({}, store.__store, updateState);
+export function calculateNextState(previousState, updateState) {
+  return { ...previousState, ...updateState };
 }

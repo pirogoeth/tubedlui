@@ -30,7 +30,6 @@ export class StoreProxy {
   get hooks() {
     return new Proxy(this.__hooks, {
       get: (target, name) => {
-        console.log(`access name (${name}) on target`, target);
         if ( target[name] === undefined ) {
           return () => null;
         }
@@ -73,7 +72,7 @@ export class StoreProxy {
       },
     });
 
-    return proxyState;
+    return [ proxyState, context ];
   }
 
   use(plugin) {
@@ -100,17 +99,18 @@ export class StoreProxy {
 
     // Emit events and catch mutations from reactors
     this.emitter.emitBefore(fn.name, this, cloneState(this.state));
-    let previousState = cloneState(this.state);
 
+    let previousState = cloneState(this.state);
     let updateState = Object.create(null);
     let proxyState = this.__makeProxyContext(updateState);
+
     let retVal = fn.apply(proxyState, args);
 
     this.emitter.emitAfter(fn.name, this, updateState);
 
     this.hooks.logStateChange(fn, previousState, updateState, true);
 
-    this.__store = calculateNextState(updateState);
+    this.__store = calculateNextState(previousState, updateState);
     this.__storeHistory.push(this.__store);
     
     return retVal;

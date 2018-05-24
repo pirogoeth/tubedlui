@@ -1,5 +1,13 @@
 import { calculateNextState } from '../utils';
 
+function installLogger(store, actionError, pluginUse, stateChange, stateMutate, stateUpdate) {
+  store.hooks.logActionError = actionError;
+  store.hooks.logPluginUse = pluginUse;
+  store.hooks.logStateChange = stateChange;
+  store.hooks.logStateMutate = stateMutate;
+  store.hooks.logStateUpdate = stateUpdate;
+};
+
 function uninstallLogger(store) {
   delete store.hooks.logActionError;
   delete store.hooks.logPluginUse;
@@ -9,15 +17,22 @@ function uninstallLogger(store) {
 };
 
 export const loggerStubsPlugin = {
+  name: 'loggerStubs',
   install(store) {
-    console.log('installing stub logger');
-    console.log(store.__hooks);
-    store.hooks.logActionError = (fn, msg) => {};
-    store.hooks.logPluginUse = (plugin) => {};
-    store.hooks.logStateChange = (trigger, previousState, updateState, isUpdate = false) => {};
-    store.hooks.logStateMutate = (trigger, previousState, nextState) => {};
-    store.hooks.logStateUpdate = (trigger, previousState, updateState) => {};
-    console.log(store.__hooks);
+    let logActionError = (fn, msg) => {};
+    let logPluginUse = (plugin) => {};
+    let logStateChange = (trigger, previousState, updateState, isUpdate = false) => {};
+    let logStateMutate = (trigger, previousState, nextState) => {};
+    let logStateUpdate = (trigger, previousState, updateState) => {};
+
+    installLogger(
+      store,
+      logActionError,
+      logPluginUse,
+      logStateChange,
+      logStateMutate,
+      logStateUpdate,
+    );
   },
   uninstall(store) {
     uninstallLogger(store);
@@ -25,16 +40,14 @@ export const loggerStubsPlugin = {
 };
 
 export const loggerPlugin = {
+  name: 'logger',
   install(store) {
-    console.log(store.__hooks);
-    console.log('uninstalling previous logger');
     uninstallLogger(store);
-    console.log(store.__hooks);
 
-    store.hooks.logActionError = (fn, msg) => {
-      if ( !store.debug ) {
-        return;
-      }
+    let logActionError = (fn, msg) => {
+      // if ( !store.debug ) {
+      //   return;
+      // }
 
       if ( store.noDebugColor ) {
         console.log(
@@ -49,10 +62,10 @@ export const loggerPlugin = {
       }
     };
 
-    store.hooks.logPluginUse = (plugin) => {
-      if ( !store.debug ) {
-        return;
-      }
+    let logPluginUse = (plugin) => {
+      // if ( !store.debug ) {
+      //   return;
+      // }
 
       if ( store.noDebugColor ) {
         console.log(
@@ -68,24 +81,7 @@ export const loggerPlugin = {
       }
     };
 
-    store.hooks.logStateChange = (trigger, previousState, updateState, isUpdate = false) => {
-      if ( !store.debug ) {
-        return;
-      }
-
-      let actionName = trigger;
-      if ( trigger.name !== undefined ) {
-        actionName = trigger.name;
-      }
-
-      if ( isUpdate ) {
-        this.logStateUpdate(actionName, previousState, updateState);
-      } else {
-        this.logStateMutate(actionName, previousState, updateState)
-      }
-    };
-
-    store.hooks.logStateMutate = (trigger, previousState, nextState) => {
+    let logStateMutate = (trigger, previousState, nextState) => {
       if ( store.noDebugColor ) {
         console.log(
           `mutation: ${trigger}\n` +
@@ -107,8 +103,8 @@ export const loggerPlugin = {
       }
     };
 
-    store.hooks.logStateUpdate = (trigger, previousState, updateState) => {
-      let nextState = calculateNextState(updateState);
+    let logStateUpdate = (trigger, previousState, updateState) => {
+      let nextState = calculateNextState(previousState, updateState);
 
       if ( store.noDebugColor ) {
         console.log(
@@ -134,6 +130,32 @@ export const loggerPlugin = {
         );
       }
     };
+
+    let logStateChange = (trigger, previousState, updateState, isUpdate = false) => {
+      // if ( !store.debug ) {
+      //   return;
+      // }
+
+      let actionName = trigger;
+      if ( trigger.name !== undefined ) {
+        actionName = trigger.name;
+      }
+
+      if ( isUpdate ) {
+        logStateUpdate(actionName, previousState, updateState);
+      } else {
+        logStateMutate(actionName, previousState, updateState)
+      }
+    };
+
+    installLogger(
+      store,
+      logActionError,
+      logPluginUse,
+      logStateChange,
+      logStateMutate,
+      logStateUpdate,
+    );
   },
   uninstall(store) {
     uninstallLogger(store);

@@ -16,6 +16,7 @@ const mutateStore = (targetState) => {
 };
 
 export const devtoolsPlugin = {
+  name: 'vuexDevtools',
   install(store) {
     if ( !devtools ) {
       return;
