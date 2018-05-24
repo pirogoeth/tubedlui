@@ -1,9 +1,10 @@
 import filter from 'lodash/filter';
-import axios from 'axios';
+import map from 'lodash/map';
 
 import Resource from '@/client/resource';
 
 export class Destination extends Resource {
+
   constructor(data) {
     super();
 
@@ -13,21 +14,34 @@ export class Destination extends Resource {
   }
 
   static list() {
-    return [];
+    return this.client.get('/destinations/')
+      .then(response => {
+        return map(response.data, (d) => new Destination(d));
+      });
   }
 
   static getById(id) {
-    destinations = Destination.list();
-    return filter(destinations, (item) => (item.id === id));
+    return Destination.list()
+      .then(destinations => {
+        return filter(destinations, (item) => (item.id === id));
+      });
   }
 
   static getByName(name) {
-    destinations = Destination.list();
-    return filter(destinations, (item) => (item.name === name));
+    return Destination.list()
+      .then(destinations => {
+        return filter(destinations, (item) => (item.name === name));
+      });
   }
 
   static create(name, location) {
-    axios.post()
+    return this.client.post('/destinations/', {
+        name: name,
+        url: location,
+      })
+      .then(response => {
+        return new Destination(response.data.destination);
+      });
   }
 
   delete() {

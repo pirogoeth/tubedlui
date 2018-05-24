@@ -1,10 +1,12 @@
 <template>
   <section class="section">
-    <h1 class="title">
-      {{ title }}
-    </h1>
-    <div class="content">
-      <slot name="content" />
+    <div class="container">
+      <h1 class="title">
+        {{ title }}
+      </h1>
+      <div class="content">
+        <slot name="content" />
+      </div>
     </div>
   </section>
 </template>

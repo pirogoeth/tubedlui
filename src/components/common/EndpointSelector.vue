@@ -90,11 +90,11 @@ let computedProps = {
     return "button endpoint-status";
   },
   endpointState() {
-    if (this.connected && this.endpoint.current) {
+    if ( this.connected && this.endpoint.current ) {
       return "endpoint-ok";
-    } else if (!this.connected && this.endpoint.current) {
+    } else if ( !this.connected && this.endpoint.current ) {
       return "endpoint-fail";
-    } else if (!this.connected) {
+    } else if ( !this.connected ) {
       return "endpoint-idle"
     }
   },

@@ -1,4 +1,5 @@
 import actions from './actions';
+import storePlugins from './plugins';
 import { StateEmitter } from './emitter';
 import { StoreProxy } from './proxy';
 import { register as registerReactors } from './reactors';
@@ -8,6 +9,10 @@ const initialState = {
   endpointClient: null,
   endpointHistory: null,
   noDebugColor: false,
+  // state from client resources
+  destinations: [],
+  jobs: [],
+  profiles: [],
 };
 
 export const cloneState = (state, ...merge) => {
@@ -15,6 +20,7 @@ export const cloneState = (state, ...merge) => {
 };
 
 export const store = new StoreProxy(actions, initialState, new StateEmitter());
+export const plugins = storePlugins;
 export default {
   install(Vue, options) {
     Vue.prototype.$store = store;

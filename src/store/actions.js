@@ -5,6 +5,18 @@ import filter from 'lodash/filter';
 // `this` refers to the current state object.
 
 export default {
+  getDestinations() {
+    let client = this.endpointClient;
+
+    return client.destinations.list()
+      .then(items => {
+        this.destinations = items;
+        return Promise.resolve(items);
+      })
+      .catch(error => {
+        return Promise.reject(error);
+      });
+  },
   getEndpointClient() {
     return this.endpointClient;
   },
