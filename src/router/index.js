@@ -11,12 +11,12 @@ export default new Router({
   routes: [
     {
       path: '/destinations/',
+      alias: '/',
       name: 'DestinationsPage',
       component: DestinationsPage,
     },
     {
       path: '/jobs/',
-      alias: '/',
       name: 'JobsPage',
       component: JobsPage,
     },

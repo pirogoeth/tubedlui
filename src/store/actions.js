@@ -29,13 +29,17 @@ export default {
   updateEndpointHistory(source) {
     var endpoints = this.endpointHistory;
 
+    // Check if `source` is already in endpoints
     let exists = filter(endpoints, (e) => (e.endpointUrl === source.endpointUrl));
-    if (exists.length != 0) {
+    if (exists.length > 0) {
+      // If it is already in the list, bail out
       return;
     }
 
+    // Shift `source` into the head of the endpoints list
     endpoints.unshift(source);
 
+    // Set new `endpointHistory`
     this.endpointHistory = endpoints;
   },
   setNoDebugColor(status) {

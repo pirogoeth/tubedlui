@@ -15,10 +15,6 @@ const initialState = {
   profiles: [],
 };
 
-export const cloneState = (state, ...merge) => {
-  return Object.assign({}, state, ...merge);
-};
-
 export const store = new StoreProxy(actions, initialState, new StateEmitter());
 export const plugins = storePlugins;
 export default {

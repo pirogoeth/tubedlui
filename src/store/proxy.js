@@ -1,20 +1,19 @@
-import { cloneState } from './index';
 import { StateEmitter } from './emitter';
-import { calculateNextState } from './utils';
+import { calculateNextState, cloneState } from './utils';
 
 import { loggerStubsPlugin } from './plugins/logger';
 
 export class StoreProxy {
 
-  constructor(actions, store, emitter) {
+  constructor(actions, initialState, emitter) {
     this.actions = actions;
     this.__emitter = new StateEmitter();
     this.__hooks = {};
-    this.__store = { ...store };
-    this.__storeHistory = [];
+    this.__state = { ...initialState };
+    this.__stateHistory = [];
     this.__plugins = [];
 
-    this.__storeHistory.push({ ...this.__store });
+    this.__stateHistory.push({ ...this.__state });
 
     for ( var name in this.actions ) {
       this[name] = this.performAction.bind(this, this.actions[name]);
@@ -44,7 +43,7 @@ export class StoreProxy {
   }
 
   get state() {
-    return new Proxy(this.__store, {
+    return new Proxy(this.__state, {
       get: (target, name) => {
         return target[name];
       },
@@ -56,7 +55,7 @@ export class StoreProxy {
 
   __makeProxyContext(updateState) {
     let context = {
-      prev: cloneState(this.__store),
+      prev: cloneState(this.__state),
       next: updateState,
     };
 
@@ -66,7 +65,6 @@ export class StoreProxy {
         return target.prev[prop];
       },
       set: (target, prop, value) => {
-        console.log('updating updateState', prop, value);
         target.next[prop] = value;
         return true;
       },
@@ -88,8 +86,8 @@ export class StoreProxy {
 
     this.hooks.logStateChange(trigger, previousState, nextState);
 
-    this.__store = nextState;
-    this.__storeHistory.push(this.__store);
+    this.__state = nextState;
+    this.__stateHistory.push(this.__state);
   }
 
   performAction(fn, ...args) {
@@ -102,16 +100,16 @@ export class StoreProxy {
 
     let previousState = cloneState(this.state);
     let updateState = Object.create(null);
-    let proxyState = this.__makeProxyContext(updateState);
+    let [ proxyState, _ ] = this.__makeProxyContext(updateState);
 
     let retVal = fn.apply(proxyState, args);
 
-    this.emitter.emitAfter(fn.name, this, updateState);
-
+    let nextState = calculateNextState(previousState, updateState);
+    this.emitter.emitAfter(fn.name, this, nextState);
     this.hooks.logStateChange(fn, previousState, updateState, true);
 
-    this.__store = calculateNextState(previousState, updateState);
-    this.__storeHistory.push(this.__store);
+    Object.assign(this.__state, updateState);
+    this.__stateHistory.push(cloneState(this.__state));
     
     return retVal;
   }

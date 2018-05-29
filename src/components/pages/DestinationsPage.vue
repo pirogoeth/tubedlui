@@ -1,7 +1,7 @@
 <template>
   <AppContainer title="Destinations">
     <div
-      v-if="client"
+      v-if="state.endpointClient"
       slot="content">
       <b-table
         :data="destinations"
@@ -22,6 +22,7 @@ import forEach from 'lodash/forEach';
 
 import AppContainer from '@/components/common/page/AppContainer.vue';
 import NotConnected from '@/components/common/NotConnected.vue';
+import { mapFields } from '@/store/mapping';
 
 let computedProps = {
   // client() {
@@ -33,23 +34,9 @@ let computedProps = {
 };
 
 let methods = {
-  client() {
-    return this.$store.getEndpointClient();
-  },
-  fetchList() {
-    console.log('trigger fetch');
-    this.$store.getDestinations()
-      .then(items => {
-        this.destinations = items;
-        this.loading = false;
-      })
-      .catch(error => {
-        this.destinations = [];
-        this.loading = false;
-        console.log(error);
-        return Promise.reject(error);
-      })
-  },
+  // client() {
+  //   return this.$store.getEndpointClient();
+  // },
 };
 
 export default {
@@ -62,11 +49,15 @@ export default {
   },
   data() {
     return {
-      destinations: [],
+      // FIXME
       loading: true,
+      state: this.$store.state,
     };
   },
-  computed: computedProps,
+  computed: {
+    ...mapFields(['destinations']),
+    ...computedProps,
+  },
   methods: methods,
 };
 </script>

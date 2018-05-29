@@ -1,4 +1,4 @@
-import { calculateNextState } from '../utils';
+import { calculateNextState } from '@/store/utils';
 
 function installLogger(store, actionError, pluginUse, stateChange, stateMutate, stateUpdate) {
   store.hooks.logActionError = actionError;
@@ -45,9 +45,9 @@ export const loggerPlugin = {
     uninstallLogger(store);
 
     let logActionError = (fn, msg) => {
-      // if ( !store.debug ) {
-      //   return;
-      // }
+      if ( !store.debug ) {
+        return;
+      }
 
       if ( store.noDebugColor ) {
         console.log(
@@ -63,9 +63,9 @@ export const loggerPlugin = {
     };
 
     let logPluginUse = (plugin) => {
-      // if ( !store.debug ) {
-      //   return;
-      // }
+      if ( !store.debug ) {
+        return;
+      }
 
       if ( store.noDebugColor ) {
         console.log(
@@ -132,9 +132,9 @@ export const loggerPlugin = {
     };
 
     let logStateChange = (trigger, previousState, updateState, isUpdate = false) => {
-      // if ( !store.debug ) {
-      //   return;
-      // }
+      if ( !store.debug ) {
+        return;
+      }
 
       let actionName = trigger;
       if ( trigger.name !== undefined ) {

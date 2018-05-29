@@ -22,7 +22,7 @@ export const devtoolsPlugin = {
       return;
     }
 
-    store.__devtools = devtools;
+    store.hooks.devtools = devtools;
 
     devtools.emit('vuex:init', store);
     devtools.on('vuex:travel-to-state', mutateStore);
@@ -30,7 +30,7 @@ export const devtoolsPlugin = {
   },
   uninstall(store) {
     devtools.off('vuex:travel-to-state', mutateStore);
-    delete store.__devtools;
+    delete store.hooks.devtools;
     remove(
       store.emitter.__after_any,
       (value, index, array) => value === emitVuexMutation,
