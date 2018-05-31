@@ -1,7 +1,7 @@
 <template>
   <AppContainer title="Destinations">
     <div
-      v-if="state.endpointClient"
+      v-if="endpointClient"
       slot="content">
       <b-table
         :data="destinations"
@@ -22,21 +22,19 @@ import forEach from 'lodash/forEach';
 
 import AppContainer from '@/components/common/page/AppContainer.vue';
 import NotConnected from '@/components/common/NotConnected.vue';
-import { mapFields } from '@/store/mapping';
+import { mappers } from '@/store';
 
 let computedProps = {
-  // client() {
-  //   return this.$store.getEndpointClient();
-  // },
+  ...mappers.mapFields([
+    'endpointClient',
+    'destinations',
+  ]),
   empty() {
     return this.destinations.length === 0;
   },
 };
 
 let methods = {
-  // client() {
-  //   return this.$store.getEndpointClient();
-  // },
 };
 
 export default {
@@ -55,7 +53,6 @@ export default {
     };
   },
   computed: {
-    ...mapFields(['destinations']),
     ...computedProps,
   },
   methods: methods,

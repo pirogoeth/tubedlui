@@ -48,7 +48,7 @@ export class StoreProxy {
         return target[name];
       },
       set: (target, name, value) => {
-        throw new Error('Can not mutate state values');
+        throw new Error('Can not directly mutate state values');
       },
     });
   }

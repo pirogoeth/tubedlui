@@ -1,6 +1,7 @@
 import { calculateNextState } from '@/store/utils';
 
-function installLogger(store, actionError, pluginUse, stateChange, stateMutate, stateUpdate) {
+function installLogger(store, logDefault, actionError, pluginUse, stateChange, stateMutate, stateUpdate) {
+  store.hooks.logDefault = logDefault;
   store.hooks.logActionError = actionError;
   store.hooks.logPluginUse = pluginUse;
   store.hooks.logStateChange = stateChange;
@@ -9,6 +10,7 @@ function installLogger(store, actionError, pluginUse, stateChange, stateMutate, 
 };
 
 function uninstallLogger(store) {
+  delete store.hooks.logDefault;
   delete store.hooks.logActionError;
   delete store.hooks.logPluginUse;
   delete store.hooks.logStateChange;
@@ -16,9 +18,18 @@ function uninstallLogger(store) {
   delete store.hooks.logStateUpdate;
 };
 
+export const colors = {
+  okay: '#51e5ff',
+  warn: '#ec368d',
+  success: '#b9d2b1',
+  info: '#9cafb7',
+  notice: '#ffa5a5',
+};
+
 export const loggerStubsPlugin = {
   name: 'loggerStubs',
   install(store) {
+    let logDefault = (...args) => {};
     let logActionError = (fn, msg) => {};
     let logPluginUse = (plugin) => {};
     let logStateChange = (trigger, previousState, updateState, isUpdate = false) => {};
@@ -27,6 +38,7 @@ export const loggerStubsPlugin = {
 
     installLogger(
       store,
+      logDefault,
       logActionError,
       logPluginUse,
       logStateChange,
@@ -40,49 +52,57 @@ export const loggerStubsPlugin = {
 };
 
 export const loggerPlugin = {
-  name: 'logger',
+  name: 'consoleLogger',
   install(store) {
     uninstallLogger(store);
 
-    let logActionError = (fn, msg) => {
-      if ( !store.debug ) {
+    let logDefault = (...args) => {
+      if ( !store.state.debug ) {
         return;
       }
 
-      if ( store.noDebugColor ) {
+      console.log(...args);
+    };
+
+    let logActionError = (fn, msg) => {
+      if ( !store.state.debug ) {
+        return;
+      }
+
+      if ( store.state.noDebugColor ) {
         console.log(
           `could not run action function ${fn}: ${msg}`,
         );
       } else {
         console.log(
           `%ccould not run action function ${fn}: %c${msg}`,
-          "color: #51e5ff",
-          "color: #ec368d",
+          `color: ${colors.okay}`,
+          `color: ${colors.warn}`,
         );
       }
     };
 
     let logPluginUse = (plugin) => {
-      if ( !store.debug ) {
+      if ( !store.state.debug ) {
         return;
       }
 
-      if ( store.noDebugColor ) {
+      if ( store.state.noDebugColor ) {
         console.log(
           `store: now using plugin: ${plugin.name}`
         );
       } else {
         console.log(
           `%cstore: %cnow using plugin: %c${plugin.name}`,
-          "color: #51e5ff",
-          "color: #ffa5a5",
-          "color: #b9d2b1",
+          `color: ${colors.okay}`,
+          `color: ${colors.notice}`,
+          `color: ${colors.success}`,
         );
       }
     };
 
     let logStateMutate = (trigger, previousState, nextState) => {
-      if ( store.noDebugColor ) {
+      if ( store.state.noDebugColor ) {
         console.log(
           `mutation: ${trigger}\n` +
           `prevState: ${JSON.stringify(previousState)}\n` +
@@ -93,12 +113,12 @@ export const loggerPlugin = {
           `%cmutation: %c${trigger}\n` +
           `%cprevState: %c${JSON.stringify(previousState)}\n` +
           `%cnextState: %c${JSON.stringify(nextState)}\n`,
-          "color: #51e5ff",
-          "color: #ffa5a5",
-          "color: #ec368d",
-          "color: #ffa5a5",
-          "color: #b9d2b1",
-          "color: #ffa5a5",
+          `color: ${colors.okay}`,
+          `color: ${colors.notice}`,
+          `color: ${colors.warn}`,
+          `color: ${colors.notice}`,
+          `color: ${colors.success}`,
+          `color: ${colors.notice}`,
         );
       }
     };
@@ -106,7 +126,7 @@ export const loggerPlugin = {
     let logStateUpdate = (trigger, previousState, updateState) => {
       let nextState = calculateNextState(previousState, updateState);
 
-      if ( store.noDebugColor ) {
+      if ( store.state.noDebugColor ) {
         console.log(
           `action: ${trigger}\n` +
           `prevState: ${JSON.stringify(previousState)}\n` +
@@ -119,20 +139,20 @@ export const loggerPlugin = {
           `%cprevState: %c${JSON.stringify(previousState)}\n` +
           `%cupdate: %c${JSON.stringify(updateState)}\n` +
           `%cnextState: %c${JSON.stringify(nextState)}\n`,
-          "color: #51e5ff",
-          "color: #ffa5a5",
-          "color: #ec368d",
-          "color: #ffa5a5",
-          "color: #9cafb7",
-          "color: #ffa5a5",
-          "color: #b9d2b1",
-          "color: #ffa5a5",
+          `color: ${colors.okay}`,
+          `color: ${colors.notice}`,
+          `color: ${colors.warn}`,
+          `color: ${colors.notice}`,
+          `color: ${colors.info}`,
+          `color: ${colors.notice}`,
+          `color: ${colors.success}`,
+          `color: ${colors.notice}`,
         );
       }
     };
 
     let logStateChange = (trigger, previousState, updateState, isUpdate = false) => {
-      if ( !store.debug ) {
+      if ( !store.state.debug ) {
         return;
       }
 
@@ -150,6 +170,7 @@ export const loggerPlugin = {
 
     installLogger(
       store,
+      logDefault,
       logActionError,
       logPluginUse,
       logStateChange,
