@@ -18,17 +18,11 @@
 </template>
 
 <script>
-import forEach from 'lodash/forEach';
-
 import AppContainer from '@/components/common/page/AppContainer.vue';
 import NotConnected from '@/components/common/NotConnected.vue';
 import { mappers } from '@/store';
 
 let computedProps = {
-  ...mappers.mapFields([
-    'endpointClient',
-    'destinations',
-  ]),
   empty() {
     return this.destinations.length === 0;
   },
@@ -47,13 +41,24 @@ export default {
   },
   data() {
     return {
-      // FIXME
+      errored: false,
       loading: true,
-      state: this.$store.state,
+      ...mappers.mapDataFields([
+        'endpointClient',
+        'destinations',
+      ]),
     };
   },
   computed: {
     ...computedProps,
+  },
+  mounted() {
+    // this.$store.getDestinations().then(res => {
+    //   this.loading = false;
+    // }).catch(err => {
+    //   this.loading = false;
+    //   this.errored = true;
+    // });
   },
   methods: methods,
 };

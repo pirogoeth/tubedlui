@@ -24,7 +24,11 @@ export const mappers = {
 
 export default {
   install(Vue, options) {
-    Vue.prototype.$store = store;
+    Vue.mixin({
+      beforeCreate() {
+        this.$store = store;
+      },
+    });
   },
 };
 

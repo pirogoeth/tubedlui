@@ -7,6 +7,9 @@ import filter from 'lodash/filter';
 export default {
   getDestinations() {
     let client = this.endpointClient;
+    if ( !client ) {
+      return Promise.reject("endpointClient is null");
+    }
 
     return client.destinations.list()
       .then(items => {
