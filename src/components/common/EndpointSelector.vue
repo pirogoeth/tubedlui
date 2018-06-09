@@ -6,7 +6,7 @@
     <b-autocomplete
       v-model="endpoint.current"
       :keep-first="true"
-      :data="endpointHistory"
+      :data="endpoint.history"
       :open-on-focus="true"
       :loading="connecting"
       placeholder="tubedlapi endpoint"
@@ -83,18 +83,15 @@ let methods = {
 }
 
 let computedProps = {
-  endpointHistory() {
-    return this.$store.getEndpointHistory();
-  },
   endpointStateContainerClasses() {
     return "button endpoint-status";
   },
   endpointState() {
-    if (this.connected && this.endpoint.current) {
+    if ( this.connected && this.endpoint.current ) {
       return "endpoint-ok";
-    } else if (!this.connected && this.endpoint.current) {
+    } else if ( !this.connected && this.endpoint.current ) {
       return "endpoint-fail";
-    } else if (!this.connected) {
+    } else if ( !this.connected ) {
       return "endpoint-idle"
     }
   },
@@ -108,19 +105,14 @@ export default {
   props: {
   },
   data() {
-    let client = this.$store.getEndpointClient();
-    let currentEndpoint = null;
-    let isConnected = false;
-    if ( client ) {
-      currentEndpoint = client.endpointUrl;
-      isConnected = true;
-    }
-
+    let state = this.$store.state;
+    let client = state.endpointClient;
     return {
-      connected: isConnected,
+      client: state.endpointClient,
+      connected: client !== null,
       connecting: false,
       endpoint: {
-        current: currentEndpoint,
+        current: client !== null ? client.endpointUrl : null,
         history: this.$store.getEndpointHistory(),
       },
     };

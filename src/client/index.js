@@ -38,15 +38,19 @@ export class Client {
     return this.url;
   }
 
+  get axiosInstance() {
+    return axios.create(this.config);
+  }
+
   get destinations() {
-    return Destination.using(this);
+    return Destination.using(this.axiosInstance);
   }
 
   get jobs() {
-    return Job.using(this);
+    return Job.using(this.axiosInstance);
   }
 
   get profiles() {
-    return Profile.using(this);
+    return Profile.using(this.axiosInstance);
   }
 }

@@ -10,20 +10,18 @@ export const register = (storeProxy) => {
         endpointHistory: JSON.parse(localStorage.getItem('endpoints')) || [],
       });
 
-      store.mutate(mutation);
+      store.mutate(mutation, 'getEndpointHistory:load:localStorage');
     }
   });
 
   emitter.before('updateEndpointHistory', (store, prevState) => {
-    if ( prevState.endpointHistory ) {
-      return;
+    if ( !prevState.endpointHistory ) {
+      let mutation = Object.assign({}, prevState, {
+        endpointHistory: JSON.parse(localStorage.getItem('endpoints')) || [],
+      });
+
+      store.mutate(mutation, 'updateEndpointHistory:load:localStorage');
     }
-
-    let mutation = Object.assign({}, prevState, {
-      endpointHistory: JSON.parse(localStorage.getItem('endpoints')) || [],
-    });
-
-    store.mutate(mutation);
   });
 
   emitter.after('updateEndpointHistory', (store, nextState) => {

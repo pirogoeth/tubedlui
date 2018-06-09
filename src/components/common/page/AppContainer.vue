@@ -24,7 +24,9 @@
       </BarMenu>
     </AppBar>
     <AppSection :title="title">
-      <slot />
+      <div slot="content">
+        <slot name="content" />
+      </div>
     </AppSection>
   </div>
 </template>

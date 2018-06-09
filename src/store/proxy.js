@@ -1,113 +1,115 @@
-import { cloneState } from './index';
 import { StateEmitter } from './emitter';
+import { calculateNextState, cloneState } from './utils';
+
+import { loggerStubsPlugin } from './plugins/logger';
 
 export class StoreProxy {
 
-  constructor(actions, store, emitter) {
+  constructor(actions, initialState, emitter) {
     this.actions = actions;
     this.__emitter = new StateEmitter();
-    this.__store = { ...store };
-    this.__storeHistory = [];
+    this.__hooks = {};
+    this.__state = { ...initialState };
+    this.__stateHistory = [];
+    this.__plugins = [];
 
-    this.__storeHistory.push(Object.assign({}, this.__store));
+    this.__stateHistory.push({ ...this.__state });
 
     for ( var name in this.actions ) {
       this[name] = this.performAction.bind(this, this.actions[name]);
     }
+
+    this.use(loggerStubsPlugin);
   }
 
   get emitter() {
     return this.__emitter;
   }
 
+  get hooks() {
+    return new Proxy(this.__hooks, {
+      get: (target, name) => {
+        if ( target[name] === undefined ) {
+          return () => null;
+        }
+
+        return target[name];
+      },
+      // set: (target, name, value) => {
+      //   target[name] = value;
+      //   return true;
+      // },
+    });
+  }
+
   get state() {
-    return new Proxy(this.__store, {
+    return new Proxy(this.__state, {
       get: (target, name) => {
         return target[name];
       },
       set: (target, name, value) => {
-        throw new Error('Can not mutate state values');
+        throw new Error('Can not directly mutate state values');
       },
     });
   }
 
-  logActionError(fn, msg) {
-    if ( !this.state.debug ) {
-      return;
-    }
+  __makeProxyContext(updateState) {
+    let context = {
+      prev: cloneState(this.__state),
+      next: updateState,
+    };
 
-    if ( this.state.noDebugColor ) {
-      console.log(
-        `could not run action function ${fn}: ${msg}`,
-      );
-    } else {
-      console.log(
-        `%ccould not run action function ${fn}: %c${msg}`,
-        "color: #51e5ff",
-        "color: #ec368d",
-      );
-    }
+    let proxyState = new Proxy(context, {
+      get: (target, prop, receiver) => {
+        // Return previousState value
+        return target.prev[prop];
+      },
+      set: (target, prop, value) => {
+        target.next[prop] = value;
+        return true;
+      },
+    });
+
+    return [ proxyState, context ];
   }
 
-  logStateChange(trigger, previousState, nextState) {
-    if ( !this.state.debug ) {
-      return;
-    }
+  use(plugin) {
+    this.hooks.logPluginUse(plugin);
 
-    let actionName = trigger;
-    if ( trigger.name !== undefined ) {
-      actionName = trigger.name;
-    }
-
-    if ( this.state.noDebugColor ) {
-      console.log(
-        `action: ${actionName}\n` +
-        `prevState: ${JSON.stringify(previousState)}\n` +
-        `nextState: ${JSON.stringify(nextState)}\n`,
-      );
-    } else {
-      console.log(
-        `%caction: %c${actionName}\n` +
-        `%cprevState: %c${JSON.stringify(previousState)}\n` +
-        `%cnextState: %c${JSON.stringify(nextState)}\n`,
-        "color: #51e5ff",
-        "color: #ffa5a5",
-        "color: #ec368d",
-        "color: #ffa5a5",
-        "color: #b9d2b1",
-        "color: #ffa5a5",
-      );
-    }
+    this.__plugins.push(plugin);
+    plugin.install(this);
   }
 
   mutate(targetState, trigger = 'mutation') {
     let previousState = Object.assign({}, this.state);
     let nextState = Object.assign({}, previousState, targetState);
 
-    this.logStateChange(trigger, previousState, nextState);
+    this.hooks.logStateChange(trigger, previousState, nextState);
 
-    this.__store = nextState;
-    this.__storeHistory.push(nextState);
+    this.__state = nextState;
+    this.__stateHistory.push(this.__state);
   }
 
   performAction(fn, ...args) {
     if ( !fn in this.actions ) {
-      this.logActionError(fn, 'not an action');
+      this.hooks.logActionError(fn, 'not an action');
     }
 
     // Emit events and catch mutations from reactors
     this.emitter.emitBefore(fn.name, this, cloneState(this.state));
+
     let previousState = cloneState(this.state);
+    let updateState = Object.create(null);
+    let [ proxyState, _ ] = this.__makeProxyContext(updateState);
 
-    let nextState = Object.assign({}, previousState);
-    let retVal = fn.apply(nextState, args);
+    let retVal = fn.apply(proxyState, args);
 
+    let nextState = calculateNextState(previousState, updateState);
     this.emitter.emitAfter(fn.name, this, nextState);
+    this.hooks.logStateChange(fn, previousState, updateState, true);
 
-    this.logStateChange(fn, previousState, nextState);
-
-    this.__store = nextState;
-    this.__storeHistory.push(nextState);
+    Object.assign(this.__state, updateState);
+    this.__stateHistory.push(cloneState(this.__state));
     
     return retVal;
   }
